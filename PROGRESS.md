@@ -36,9 +36,9 @@ AGP 8.13.2 · Gradle 8.13 · Kotlin 2.0.21 · KSP 2.0.21-1.0.27 · Compose BOM 2
 - [x] Echo: UI (onboarding, chats, chat, deleted, search, settings)
 - [x] Echo: ads (UMP consent + native) + Remove-ads billing (compiles; real purchase needs Play Console)
 - [ ] Echo: emulator smoke test + screenshots
-- [ ] Notifii: rebuild on ladder model (+ unit tests)
-- [ ] Notifii: UI (onboarding, now, ladder, vault, why/exception sheets, siren screen, paywall)
-- [ ] Notifii: billing with INTERNET stripped from merged manifest
+- [x] Notifii: rebuilt on ladder model (+ 15 unit tests: decisions, exceptions, amounts, bursts, night window, digest times)
+- [x] Notifii: UI (onboarding, now, ladder, vault, why/exception sheets, siren screen, paywall, siren check)
+- [x] Notifii: billing with INTERNET stripped from merged manifest (build fails if it ever comes back; verified)
 - [ ] Notifii: emulator smoke test + screenshots
 
 ## What we need from the user (blocking only for release, not for building)
