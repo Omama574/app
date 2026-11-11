@@ -1,0 +1,11 @@
+<resources>
+    <color name="echo_brand">#4B3BD6</color>
+    <color name="echo_canvas_light">#FBFAFF</color>
+    <color name="echo_canvas_dark">#0E0D14</color>
+
+    <style name="Theme.Echo" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/echo_canvas_light</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
