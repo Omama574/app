@@ -40,7 +40,8 @@ class CaptureService : NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
-        if (!isWatched(sbn.packageName)) return
+        val simulated = BuildConfig.DEBUG && sbn.packageName == packageName && sbn.notification.channelId == "debug_sim"
+        if (!simulated && !isWatched(sbn.packageName)) return
         if (sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY != 0) return
         val messages = read(sbn)
         if (messages.isEmpty()) return

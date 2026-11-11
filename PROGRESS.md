@@ -35,11 +35,13 @@ AGP 8.13.2 · Gradle 8.13 · Kotlin 2.0.21 · KSP 2.0.21-1.0.27 · Compose BOM 2
 - [x] Echo: capture engine + deletion detection (+ 7 unit tests, passing)
 - [x] Echo: UI (onboarding, chats, chat, deleted, search, settings)
 - [x] Echo: ads (UMP consent + native) + Remove-ads billing (compiles; real purchase needs Play Console)
-- [ ] Echo: emulator smoke test + screenshots
-- [x] Notifii: rebuilt on ladder model (+ 15 unit tests: decisions, exceptions, amounts, bursts, night window, digest times)
+- [x] Echo: Android Lint, 0 errors
+- [ ] Echo: emulator smoke test + screenshots (BLOCKED: see Next steps 1)
+- [x] Notifii: rebuilt on ladder model (+ 16 unit tests: decisions, exceptions, amounts, bursts, night window, digest times)
 - [x] Notifii: UI (onboarding, now, ladder, vault, why/exception sheets, siren screen, paywall, siren check)
 - [x] Notifii: billing with INTERNET stripped from merged manifest (build fails if it ever comes back; verified)
-- [ ] Notifii: emulator smoke test + screenshots
+- [x] Notifii: Android Lint, 0 errors (fixed: unchecked notification permission in digest; API 26 crash on the Siren screen)
+- [ ] Notifii: emulator smoke test + screenshots (BLOCKED: see Next steps 1)
 
 ## What we need from the user (blocking only for release, not for building)
 1. Final app names + package IDs (working: `app.echo.messages`, `com.notifii.app`). Package IDs can't change after first upload.
@@ -55,4 +57,13 @@ AGP 8.13.2 · Gradle 8.13 · Kotlin 2.0.21 · KSP 2.0.21-1.0.27 · Compose BOM 2
 ```
 
 ## Next steps
-(updated as work progresses)
+1. **On-device test is blocked on the dev machine:** C: has ~2 GB free and D: ~6.3 GB, but a new emulator needs 7.3 GB, and the existing `SA_API34` AVD has a lock-screen PIN (apps can't start until it's unlocked). Unblock with any one of: free ~1 GB on D:, share the SA_API34 PIN, or plug in a phone with USB debugging, then run the steps below.
+2. Echo end-to-end: `adb shell cmd notification allow_listener app.echo.messages/app.echo.messages.capture.CaptureService`, then in debug builds `adb shell am broadcast -n app.echo.messages/.DebugSimulator --ei step 1` (then 2, 3, 4) to simulate a chat, a deletion, a group chat and an edit.
+3. Notifii end-to-end: allow listener `com.notifii.app/com.notifii.app.service.ListenerService`, post test notifications with `adb shell cmd notification post -t "Title" tag "text"`, and use Settings → Test Siren.
+4. Before release: real AdMob IDs, Play Console products, privacy-policy URLs, release signing, Play declarations (Notification listener use, full-screen intent for Notifii's Siren, mediaPlayback foreground service, battery-optimisation exemption).
+
+## Known limits (honest list)
+- Both apps only see messages that arrive as notifications. Chats read while open in the messenger aren't captured.
+- Echo deletion detection: placeholder text (common languages) + "message vanished from the notification" heuristic. If the deleted message was the only one, the messenger usually removes the notification, which can't be told apart from "read".
+- Notifii: after a phone restart, tapping an old Vault entry opens the app, not the exact chat (Android doesn't let apps save tap targets).
+- Dev machine: C: drive is ~99% full, which makes builds and emulators slow or fail.
