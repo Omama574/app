@@ -67,6 +67,13 @@ interface MessageDao {
     @Query("UPDATE messages SET editedText = :text WHERE id = :id")
     suspend fun markEdited(id: Long, text: String)
 
+    @Query("SELECT * FROM messages WHERE editedText = :text AND deletedAt IS NULL")
+    suspend fun editedTo(text: String): List<Message>
+
+    /** An "edit" that turned out to be the deleted placeholder: the original text is the message that was deleted. */
+    @Query("UPDATE messages SET deletedAt = :at, editedText = NULL WHERE id = :id AND deletedAt IS NULL")
+    suspend fun convertEditToDeleted(id: Long, at: Long)
+
     @Query(
         """
         SELECT m.pkg, m.conversation, m.isGroup, m.sender AS lastSender, m.text AS lastText,

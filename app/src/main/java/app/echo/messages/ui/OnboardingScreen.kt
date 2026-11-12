@@ -1,5 +1,7 @@
 package app.echo.messages.ui
 
+import app.echo.messages.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -71,27 +73,27 @@ fun OnboardingScreen(onDone: () -> Unit) {
         Spacer(Modifier.height(32.dp))
         RevealDemo()
         Spacer(Modifier.height(40.dp))
-        Text("Read messages, even after they’re deleted", style = MaterialTheme.typography.headlineLarge)
+        Text(stringResource(R.string.onb_title), style = MaterialTheme.typography.headlineLarge)
         Spacer(Modifier.height(12.dp))
         Text(
-            "Echo quietly keeps a copy of every message you receive, so “This message was deleted” never hides anything from you again.",
+            stringResource(R.string.onb_body),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(28.dp))
-        Benefit(Icons.Outlined.Forum, "WhatsApp, Telegram, Instagram, Signal and more")
-        Benefit(Icons.Outlined.Lock, "Stays on this phone. No account, no sign-up.")
-        Benefit(Icons.Outlined.VolunteerActivism, "Remove ads with one payment. Never a subscription.")
+        Benefit(Icons.Outlined.Forum, stringResource(R.string.onb_apps))
+        Benefit(Icons.Outlined.Lock, stringResource(R.string.onb_private))
+        Benefit(Icons.Outlined.VolunteerActivism, stringResource(R.string.onb_no_sub))
         Spacer(Modifier.height(40.dp))
         Button(
             onClick = { openListenerSettings(context) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-        ) { Text("Turn on Echo", style = MaterialTheme.typography.titleMedium) }
+        ) { Text(stringResource(R.string.onb_cta), style = MaterialTheme.typography.titleMedium) }
         Spacer(Modifier.height(12.dp))
         Text(
-            "Next, Android asks to let Echo read notifications. That’s how it sees messages. Echo can only keep messages that arrive after you turn it on.",
+            stringResource(R.string.onb_fineprint),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 4.dp),
@@ -117,6 +119,7 @@ private fun Benefit(icon: ImageVector, text: String) {
 @Composable
 private fun RevealDemo() {
     var revealed by remember { mutableStateOf(false) }
+    val description = stringResource(R.string.onb_demo_desc)
     LaunchedEffect(Unit) {
         while (true) {
             delay(1800); revealed = true
@@ -126,10 +129,10 @@ private fun RevealDemo() {
     Column(
         Modifier
             .fillMaxWidth()
-            .semantics { contentDescription = "Example: a deleted message shown again in Echo" },
+            .semantics { contentDescription = description },
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        DemoBubble { Text("Are you coming tonight?", style = MaterialTheme.typography.bodyLarge) }
+        DemoBubble { Text(stringResource(R.string.onb_demo_msg1), style = MaterialTheme.typography.bodyLarge) }
         AnimatedContent(
             targetState = revealed,
             transitionSpec = { (fadeIn(spring()) + scaleIn(spring(dampingRatio = 0.7f), initialScale = 0.92f)) togetherWith fadeOut() },
@@ -138,7 +141,7 @@ private fun RevealDemo() {
             if (!show) {
                 DemoBubble(border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
                     Text(
-                        "🚫 This message was deleted",
+                        stringResource(R.string.onb_demo_deleted),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textDecoration = TextDecoration.None,
@@ -150,12 +153,12 @@ private fun RevealDemo() {
                     border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.tertiary),
                 ) {
                     Column {
-                        Text("Sorry, I can’t make it 😕", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                        Text(stringResource(R.string.onb_demo_msg2), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onTertiaryContainer)
                         Spacer(Modifier.height(6.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Outlined.Restore, null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Deleted · saved by Echo", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.tertiary)
+                            Text(stringResource(R.string.onb_demo_saved), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.tertiary)
                         }
                     }
                 }

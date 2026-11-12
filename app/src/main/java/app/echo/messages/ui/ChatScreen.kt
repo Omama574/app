@@ -1,5 +1,7 @@
 package app.echo.messages.ui
 
+import app.echo.messages.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -79,7 +81,7 @@ fun ChatScreen(vm: EchoViewModel, pkg: String, conversation: String, onBack: () 
         buildList<ChatItem> {
             list.forEachIndexed { i, m ->
                 val prev = list.getOrNull(i - 1)
-                if (prev == null || dayLabel(prev.timestamp) != dayLabel(m.timestamp)) add(DayRow(dayLabel(m.timestamp)))
+                if (prev == null || dayLabel(context, prev.timestamp) != dayLabel(context, m.timestamp)) add(DayRow(dayLabel(context, m.timestamp)))
                 add(MsgRow(m, showName = m.isGroup && !m.isMine && prev?.sender != m.sender))
             }
         }.asReversed()
@@ -89,7 +91,7 @@ fun ChatScreen(vm: EchoViewModel, pkg: String, conversation: String, onBack: () 
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back") } },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back)) } },
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Avatar(conversation, pkg, size = 40.dp)
@@ -101,10 +103,10 @@ fun ChatScreen(vm: EchoViewModel, pkg: String, conversation: String, onBack: () 
                     }
                 },
                 actions = {
-                    IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, contentDescription = "More options") }
+                    IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(R.string.more_options)) }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                         DropdownMenuItem(
-                            text = { Text("Delete saved chat") },
+                            text = { Text(stringResource(R.string.chat_delete)) },
                             leadingIcon = { Icon(Icons.Outlined.Delete, null) },
                             onClick = { menu = false; confirmDelete = true },
                         )
@@ -134,12 +136,12 @@ fun ChatScreen(vm: EchoViewModel, pkg: String, conversation: String, onBack: () 
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text("Delete saved chat?") },
-            text = { Text("This removes Echo’s copy of “$conversation”. Your chat in ${appLabel(context, pkg)} isn’t touched.") },
+            title = { Text(stringResource(R.string.chat_delete_title)) },
+            text = { Text(stringResource(R.string.chat_delete_body, conversation, appLabel(context, pkg))) },
             confirmButton = {
-                TextButton(onClick = { vm.deleteConversation(pkg, conversation); confirmDelete = false; onBack() }) { Text("Delete") }
+                TextButton(onClick = { vm.deleteConversation(pkg, conversation); confirmDelete = false; onBack() }) { Text(stringResource(R.string.delete)) }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
 }
@@ -165,7 +167,7 @@ private fun SavedFromNote() {
         Icon(Icons.Outlined.Info, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(6.dp))
         Text(
-            "Echo saves messages that arrive as notifications.",
+            stringResource(R.string.chat_footer),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -181,6 +183,7 @@ private fun Bubble(m: Message, showName: Boolean, snackbar: SnackbarHostState) {
     val clipboard = LocalClipboardManager.current
     val haptics = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
+    val copied = stringResource(R.string.copied)
 
     val container = when {
         m.isDeleted -> c.tertiaryContainer
@@ -209,7 +212,7 @@ private fun Bubble(m: Message, showName: Boolean, snackbar: SnackbarHostState) {
                     .combinedClickable(onClick = {}, onLongClick = {
                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                         clipboard.setText(AnnotatedString(shownText))
-                        scope.launch { snackbar.showSnackbar("Copied") }
+                        scope.launch { snackbar.showSnackbar(copied) }
                     })
                     .padding(horizontal = 14.dp, vertical = 10.dp),
             ) {
@@ -220,19 +223,19 @@ private fun Bubble(m: Message, showName: Boolean, snackbar: SnackbarHostState) {
                 Text(shownText, style = MaterialTheme.typography.bodyLarge, color = onContainer)
                 if (m.editedText != null) {
                     Spacer(Modifier.height(6.dp))
-                    Text("Original: ${m.text}", style = MaterialTheme.typography.bodySmall, color = onContainer.copy(alpha = 0.75f))
+                    Text(stringResource(R.string.original, m.text), style = MaterialTheme.typography.bodySmall, color = onContainer.copy(alpha = 0.75f))
                 }
                 Spacer(Modifier.height(4.dp))
                 Row(Modifier.align(Alignment.End), verticalAlignment = Alignment.CenterVertically) {
                     if (m.isDeleted) {
                         Icon(Icons.Rounded.Restore, null, tint = c.tertiary, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Deleted", style = MaterialTheme.typography.labelSmall, color = c.tertiary)
+                        Text(stringResource(R.string.label_deleted), style = MaterialTheme.typography.labelSmall, color = c.tertiary)
                         Spacer(Modifier.width(6.dp))
                     } else if (m.editedText != null) {
                         Icon(Icons.Rounded.Edit, null, tint = onContainer.copy(alpha = 0.7f), modifier = Modifier.size(12.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Edited", style = MaterialTheme.typography.labelSmall, color = onContainer.copy(alpha = 0.7f))
+                        Text(stringResource(R.string.label_edited), style = MaterialTheme.typography.labelSmall, color = onContainer.copy(alpha = 0.7f))
                         Spacer(Modifier.width(6.dp))
                     }
                     Text(clock(context, m.timestamp), style = MaterialTheme.typography.labelSmall, color = onContainer.copy(alpha = 0.7f))

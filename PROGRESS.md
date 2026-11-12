@@ -62,6 +62,14 @@ AGP 8.13.2 · Gradle 8.13 · Kotlin 2.0.21 · KSP 2.0.21-1.0.27 · Compose BOM 2
 3. Notifii end-to-end: allow listener `com.notifii.app/com.notifii.app.service.ListenerService`, post test notifications with `adb shell cmd notification post -t "Title" tag "text"`, and use Settings → Test Siren.
 4. Before release: real AdMob IDs, Play Console products, privacy-policy URLs, release signing, Play declarations (Notification listener use, full-screen intent for Notifii's Siren, mediaPlayback foreground service, battery-optimisation exemption).
 
+## Languages (done)
+Both apps ship in English + 24 languages: Arabic, Bengali, Chinese (Simplified + Traditional), French, German, Gujarati, Hindi, Indonesian, Italian, Japanese, Korean, Marathi, Polish, Portuguese, Russian, Spanish, Tamil, Telugu, Thai, Turkish, Ukrainian, Urdu, Vietnamese. Android 13+ users can also pick the app's language separately (generated locale config).
+- **Edit text:** change English in `app/src/main/res/values/strings.xml`, add the same key to every language block in `i18n/*.txt`, then run `python i18n/gen.py app/src/main/res i18n/*.txt`. The generator refuses to write if any language misses a key or breaks a `%1$s` placeholder.
+- Counts use neutral phrasing ("Deleted: 3") so no language needs plural rules.
+- **Before release:** have a native speaker skim the main screens + store listing per language (machine-quality risk, especially Indic scripts and Arabic/Urdu).
+- **Echo deletion detection in every language:** a built-in list of "This message was deleted" texts (verified: English, Tamil from WhatsApp's FAQ; Spanish, Portuguese, Russian, Indonesian from press quoting the app; others best-known) **plus on-device learning**: when the same new text replaces messages from two different people, Echo learns it as that phone's placeholder and reclassifies those "edits" as deletions.
+- Notifii's "Why?" reasons are stored as codes and rendered in the phone's language at display time.
+
 ## Known limits (honest list)
 - Both apps only see messages that arrive as notifications. Chats read while open in the messenger aren't captured.
 - Echo deletion detection: placeholder text (common languages) + "message vanished from the notification" heuristic. If the deleted message was the only one, the messenger usually removes the notification, which can't be told apart from "read".

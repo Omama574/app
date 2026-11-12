@@ -90,14 +90,26 @@ class CaptureService : NotificationListenerService() {
         val shown = ArrayList<MessageKey>(messages.size)
         for (m in messages) {
             shown += m.key
-            if (isDeletedPlaceholder(m.text)) {
-                dao.find(m.pkg, m.conversation, m.sender, m.timestamp)?.let { if (dao.markDeleted(it.id, now) == 1) alert(it) }
+            val saved = dao.find(m.pkg, m.conversation, m.sender, m.timestamp)
+            if (saved == null) {
+                // Nothing to recover for a placeholder we never saw the original of; anything else is a new message.
+                if (isDeletedPlaceholder(m.text, echo.prefs.learnedPlaceholders.value, exact = true)) continue
+                dao.insert(Message(pkg = m.pkg, conversation = m.conversation, sender = m.sender, text = m.text, timestamp = m.timestamp, isGroup = m.isGroup))
                 continue
             }
-            val id = dao.insert(Message(pkg = m.pkg, conversation = m.conversation, sender = m.sender, text = m.text, timestamp = m.timestamp, isGroup = m.isGroup))
-            if (id == -1L) {
-                val saved = dao.find(m.pkg, m.conversation, m.sender, m.timestamp) ?: continue
-                if (saved.text != m.text && saved.editedText != m.text) dao.markEdited(saved.id, m.text)
+            if (saved.text == m.text || saved.editedText == m.text) continue
+            if (isDeletedPlaceholder(m.text, echo.prefs.learnedPlaceholders.value)) {
+                if (dao.markDeleted(saved.id, now) == 1) alert(saved)
+                continue
+            }
+            val sameChange = dao.editedTo(m.text).filter { it.id != saved.id }
+            if (isPlaceholderCollision(saved.conversation, saved.sender, sameChange.map { it.conversation to it.sender })) {
+                // Different people's messages all became this exact text: it's the placeholder in this phone's language.
+                echo.prefs.learnPlaceholder(normalizePlaceholder(m.text))
+                sameChange.forEach { dao.convertEditToDeleted(it.id, now) }
+                if (dao.markDeleted(saved.id, now) == 1) alert(saved)
+            } else {
+                dao.markEdited(saved.id, m.text)
             }
         }
         val first = messages.first()
@@ -124,7 +136,7 @@ class CaptureService : NotificationListenerService() {
         val notification = NotificationCompat.Builder(this, EchoApp.CHANNEL_DELETED)
             .setSmallIcon(R.drawable.ic_stat_echo)
             .setColor(ContextCompat.getColor(this, R.color.echo_brand))
-            .setContentTitle("$who deleted a message")
+            .setContentTitle(getString(R.string.alert_title, who))
             .setContentText(m.text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(m.text))
             .setSubText(if (m.isGroup) m.conversation else null)

@@ -1,5 +1,6 @@
 package app.echo.messages.ads
 
+import app.echo.messages.R
 import android.app.Activity
 import android.content.Context
 import android.graphics.Outline
@@ -131,7 +132,7 @@ private class AdViews(val root: NativeAdView) {
         headline.text = ad.headline
         bodyText.text = ad.body
         bodyText.visibility = if (ad.body.isNullOrBlank()) View.GONE else View.VISIBLE
-        cta.text = ad.callToAction ?: "Open"
+        cta.text = ad.callToAction ?: root.context.getString(R.string.ad_open)
         ad.icon?.drawable?.let { icon.setImageDrawable(it); icon.visibility = View.VISIBLE } ?: run { icon.visibility = View.GONE }
         media.mediaContent = ad.mediaContent
         root.setNativeAd(ad)
@@ -160,7 +161,7 @@ private fun buildAdView(context: Context, c: AdColors): AdViews {
     header.addView(root.icon, LinearLayout.LayoutParams(dp(44), dp(44)).apply { marginEnd = dp(12) })
     val titles = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
     val badge = TextView(context).apply {
-        text = "Ad"
+        text = context.getString(R.string.ad_badge)
         setTextColor(c.onBadge)
         setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
         background = rounded(c.badge, 6)

@@ -1,5 +1,7 @@
 package app.echo.messages.ui
 
+import app.echo.messages.R
+import androidx.compose.ui.res.stringResource
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -79,8 +81,8 @@ fun SettingsScreen(vm: EchoViewModel, onBack: () -> Unit) {
         modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = { Text("Settings") },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back") } },
+                title = { Text(stringResource(R.string.settings)) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back)) } },
                 scrollBehavior = scroll,
             )
         },
@@ -95,20 +97,20 @@ fun SettingsScreen(vm: EchoViewModel, onBack: () -> Unit) {
                     removed = adsRemoved,
                     price = price,
                     onBuy = {
-                        if (!vm.buyRemoveAds(activity)) Toast.makeText(context, "Google Play isn’t reachable right now. Try again in a moment.", Toast.LENGTH_SHORT).show()
+                        if (!vm.buyRemoveAds(activity)) Toast.makeText(context, context.getString(R.string.play_unreachable), Toast.LENGTH_SHORT).show()
                     },
-                    onRestore = { vm.billing.restore(); Toast.makeText(context, "Checking your purchases…", Toast.LENGTH_SHORT).show() },
+                    onRestore = { vm.billing.restore(); Toast.makeText(context, context.getString(R.string.checking_purchases), Toast.LENGTH_SHORT).show() },
                 )
             }
             item {
-                Section("Alerts") {
-                    SwitchRow("Tell me when someone deletes a message", "Shows what it said, right away.", alertOnDelete) { prefs.setAlertOnDelete(it) }
+                Section(stringResource(R.string.set_alerts)) {
+                    SwitchRow(stringResource(R.string.set_alert_title), stringResource(R.string.set_alert_body), alertOnDelete) { prefs.setAlertOnDelete(it) }
                 }
             }
             item {
-                Section("Apps Echo saves") {
+                Section(stringResource(R.string.set_apps)) {
                     if (installed.isEmpty()) {
-                        Text("None of the supported chat apps are installed yet.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(16.dp))
+                        Text(stringResource(R.string.set_no_apps), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(16.dp))
                     }
                     installed.forEach { pkg ->
                         AppSwitchRow(pkg, enabled = pkg !in muted) { prefs.setAppEnabled(pkg, it) }
@@ -116,8 +118,8 @@ fun SettingsScreen(vm: EchoViewModel, onBack: () -> Unit) {
                 }
             }
             item {
-                Section("Keep messages for") {
-                    val options = listOf(30 to "30 days", 90 to "90 days", 0 to "Forever")
+                Section(stringResource(R.string.set_keep)) {
+                    val options = listOf(30 to stringResource(R.string.days_30), 90 to stringResource(R.string.days_90), 0 to stringResource(R.string.forever))
                     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(16.dp)) {
                         options.forEachIndexed { i, (days, label) ->
                             SegmentedButton(
@@ -130,20 +132,20 @@ fun SettingsScreen(vm: EchoViewModel, onBack: () -> Unit) {
                 }
             }
             item {
-                Section("Privacy") {
+                Section(stringResource(R.string.set_privacy)) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
                         Icon(Icons.Outlined.Shield, null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(Modifier.width(16.dp))
                         Text(
-                            "Your messages never leave this phone. Echo uses the internet only to show ads, and ads never see your messages.",
+                            stringResource(R.string.set_privacy_body),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
-                    LinkRow(Icons.Outlined.PrivacyTip, "Privacy policy") {
+                    LinkRow(Icons.Outlined.PrivacyTip, stringResource(R.string.privacy_policy)) {
                         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BuildConfig.PRIVACY_URL))) }
                     }
                     if (!adsRemoved && Ads.privacyOptionsRequired(context)) {
-                        LinkRow(Icons.Outlined.PrivacyTip, "Ad privacy choices") { Ads.showPrivacyOptions(activity) }
+                        LinkRow(Icons.Outlined.PrivacyTip, stringResource(R.string.ad_choices)) { Ads.showPrivacyOptions(activity) }
                     }
                 }
             }
@@ -158,13 +160,13 @@ fun SettingsScreen(vm: EchoViewModel, onBack: () -> Unit) {
                     ) {
                         Icon(Icons.Outlined.DeleteForever, null, tint = MaterialTheme.colorScheme.error)
                         Spacer(Modifier.width(16.dp))
-                        Text("Delete all saved messages", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.delete_all_saved), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
             item {
                 Text(
-                    "Echo ${BuildConfig.VERSION_NAME}",
+                    stringResource(R.string.version, BuildConfig.VERSION_NAME),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -177,10 +179,10 @@ fun SettingsScreen(vm: EchoViewModel, onBack: () -> Unit) {
     if (confirmClear) {
         AlertDialog(
             onDismissRequest = { confirmClear = false },
-            title = { Text("Delete everything Echo saved?") },
-            text = { Text("All saved and deleted messages will be gone for good. Your chat apps aren’t affected.") },
-            confirmButton = { TextButton(onClick = { vm.clearAll(); confirmClear = false }) { Text("Delete all") } },
-            dismissButton = { TextButton(onClick = { confirmClear = false }) { Text("Cancel") } },
+            title = { Text(stringResource(R.string.clear_title)) },
+            text = { Text(stringResource(R.string.clear_body)) },
+            confirmButton = { TextButton(onClick = { vm.clearAll(); confirmClear = false }) { Text(stringResource(R.string.delete_all)) } },
+            dismissButton = { TextButton(onClick = { confirmClear = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
 }
@@ -194,19 +196,19 @@ private fun RemoveAdsCard(removed: Boolean, price: String?, onBuy: () -> Unit, o
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Rounded.Favorite, null, tint = c.primary)
                     Spacer(Modifier.width(12.dp))
-                    Text("Ads removed. Thank you!", style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(R.string.ads_removed), style = MaterialTheme.typography.titleLarge)
                 }
                 Spacer(Modifier.height(6.dp))
-                Text("You’re supporting an independent developer.", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.ads_thanks), style = MaterialTheme.typography.bodyMedium)
             } else {
-                Text("Remove ads forever", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.remove_ads_title), style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(6.dp))
-                Text("Pay once and it’s yours. No subscription, no renewals.", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.remove_ads_body), style = MaterialTheme.typography.bodyMedium)
                 Spacer(Modifier.height(16.dp))
                 Button(onClick = onBuy, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                    Text(if (price != null) "Remove ads · $price" else "Remove ads", style = MaterialTheme.typography.titleSmall)
+                    Text(if (price != null) stringResource(R.string.remove_ads_price, price) else stringResource(R.string.remove_ads), style = MaterialTheme.typography.titleSmall)
                 }
-                TextButton(onClick = onRestore, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text("Restore purchase") }
+                TextButton(onClick = onRestore, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.restore_purchase)) }
             }
         }
     }

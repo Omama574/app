@@ -1,5 +1,7 @@
 package app.echo.messages.ui
 
+import app.echo.messages.R
+import androidx.compose.ui.res.stringResource
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -88,10 +90,10 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Echo", style = MaterialTheme.typography.headlineSmall) },
+                title = { Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall) },
                 actions = {
-                    IconButton(onClick = onSearch) { Icon(Icons.Outlined.Search, contentDescription = "Search messages") }
-                    IconButton(onClick = onSettings) { Icon(Icons.Outlined.Settings, contentDescription = "Settings") }
+                    IconButton(onClick = onSearch) { Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.search_messages)) }
+                    IconButton(onClick = onSettings) { Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings)) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
@@ -102,14 +104,14 @@ fun HomeScreen(
                 Tab(
                     selected = pager.currentPage == 0,
                     onClick = { scope.launch { pager.animateScrollToPage(0) } },
-                    text = { Text("Chats", style = MaterialTheme.typography.titleSmall) },
+                    text = { Text(stringResource(R.string.tab_chats), style = MaterialTheme.typography.titleSmall) },
                 )
                 Tab(
                     selected = pager.currentPage == 1,
                     onClick = { scope.launch { pager.animateScrollToPage(1) } },
                     text = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Deleted", style = MaterialTheme.typography.titleSmall)
+                            Text(stringResource(R.string.tab_deleted), style = MaterialTheme.typography.titleSmall)
                             val count = deleted?.size ?: 0
                             if (count > 0) {
                                 Spacer(Modifier.width(6.dp))
@@ -142,15 +144,15 @@ private fun ChatsTab(
             conversations.isEmpty() -> item(key = "empty") {
                 EmptyState(
                     icon = Icons.Outlined.Forum,
-                    title = "Waiting for your first message",
-                    body = "New messages from your chat apps will show up here. If someone deletes one, you’ll still be able to read it.",
+                    title = stringResource(R.string.chats_empty_title),
+                    body = stringResource(R.string.chats_empty_body),
                 )
             }
             else -> conversations.forEachIndexed { index, row ->
                 if (showAd && index == AD_POSITION) item(key = "ad") {
                     Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                         NativeAdCard()
-                        TextButton(onClick = onSettings, modifier = Modifier.align(Alignment.End)) { Text("Remove ads") }
+                        TextButton(onClick = onSettings, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.remove_ads)) }
                     }
                 }
                 item(key = "${row.pkg}/${row.conversation}") {
@@ -182,17 +184,17 @@ private fun ConversationItem(row: ConversationRow, onClick: () -> Unit) {
             }
             Spacer(Modifier.height(2.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                val prefix = when {
-                    row.lastSender.isEmpty() -> "You: "
-                    row.isGroup -> "${row.lastSender}: "
-                    else -> ""
+                val preview = when {
+                    row.lastSender.isEmpty() -> stringResource(R.string.you_prefix, row.lastText)
+                    row.isGroup -> stringResource(R.string.sender_prefix, row.lastSender, row.lastText)
+                    else -> row.lastText
                 }
                 if (row.lastDeleted) {
                     Icon(Icons.Rounded.Restore, null, tint = c.tertiary, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
                 }
                 Text(
-                    prefix + row.lastText,
+                    preview,
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (row.lastDeleted) c.tertiary else c.onSurfaceVariant,
                     fontStyle = if (row.lastDeleted) FontStyle.Italic else FontStyle.Normal,
@@ -203,7 +205,7 @@ private fun ConversationItem(row: ConversationRow, onClick: () -> Unit) {
                 if (row.deletedCount > 0) {
                     Spacer(Modifier.width(8.dp))
                     Badge(containerColor = c.tertiaryContainer, contentColor = c.onTertiaryContainer) {
-                        Text("${row.deletedCount} deleted", modifier = Modifier.padding(horizontal = 2.dp))
+                        Text(stringResource(R.string.deleted_count, row.deletedCount), modifier = Modifier.padding(horizontal = 2.dp))
                     }
                 }
             }
@@ -223,14 +225,14 @@ private fun DeletedTab(deleted: List<Message>?, onOpenChat: (String, String) -> 
             deleted.isEmpty() -> item {
                 EmptyState(
                     icon = Icons.Outlined.AutoDelete,
-                    title = "Nothing deleted yet",
-                    body = "When someone deletes a message after it arrives, it lands here with exactly what it said.",
+                    title = stringResource(R.string.deleted_empty_title),
+                    body = stringResource(R.string.deleted_empty_body),
                 )
             }
             else -> {
                 item {
                     Text(
-                        if (deleted.size == 1) "1 message someone tried to take back" else "${deleted.size} messages people tried to take back",
+                        stringResource(R.string.deleted_header, deleted.size),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 4.dp, bottom = 4.dp),
@@ -254,9 +256,10 @@ private fun DeletedCard(m: Message, onClick: () -> Unit) {
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(who, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    val where = if (m.isGroup) "in ${m.conversation} · " else ""
+                    val app = appLabel(context, m.pkg)
+                    val deletedWhen = shortTime(context, m.deletedAt ?: m.timestamp)
                     Text(
-                        "$where${appLabel(context, m.pkg)} · deleted ${shortTime(context, m.deletedAt ?: m.timestamp)}",
+                        if (m.isGroup) stringResource(R.string.deleted_meta_group, m.conversation, app, deletedWhen) else stringResource(R.string.deleted_meta, app, deletedWhen),
                         style = MaterialTheme.typography.labelMedium,
                         color = c.onSurfaceVariant,
                         maxLines = 1,
@@ -273,7 +276,7 @@ private fun DeletedCard(m: Message, onClick: () -> Unit) {
                 Text(m.text, style = MaterialTheme.typography.bodyLarge, color = c.onTertiaryContainer, modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp))
             }
             Spacer(Modifier.height(8.dp))
-            Text("Sent ${clock(context, m.timestamp)}", style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
+            Text(stringResource(R.string.sent_at, clock(context, m.timestamp)), style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
         }
     }
 }
@@ -297,9 +300,9 @@ private fun StatusBanners(vm: EchoViewModel) {
         if (!enabled) {
             Banner(
                 icon = Icons.Outlined.PauseCircle,
-                title = "Echo is paused",
-                body = "Notification access is off, so new messages aren’t being saved.",
-                action = "Turn on",
+                title = stringResource(R.string.paused_title),
+                body = stringResource(R.string.paused_body),
+                action = stringResource(R.string.turn_on),
                 onAction = { openListenerSettings(context) },
                 container = MaterialTheme.colorScheme.errorContainer,
                 content = MaterialTheme.colorScheme.onErrorContainer,
@@ -307,9 +310,9 @@ private fun StatusBanners(vm: EchoViewModel) {
         } else if (alertOnDelete && !canNotify) {
             Banner(
                 icon = Icons.Outlined.NotificationsActive,
-                title = "Know the moment it happens",
-                body = "Get an alert with the original text as soon as someone deletes a message.",
-                action = "Allow alerts",
+                title = stringResource(R.string.alerts_banner_title),
+                body = stringResource(R.string.alerts_banner_body),
+                action = stringResource(R.string.allow_alerts),
                 onAction = { askNotify.launch(Manifest.permission.POST_NOTIFICATIONS) },
             )
         }

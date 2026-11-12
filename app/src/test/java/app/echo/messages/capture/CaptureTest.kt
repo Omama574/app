@@ -17,6 +17,27 @@ class CaptureTest {
         assertFalse(isDeletedPlaceholder("hello"))
     }
 
+    @Test fun placeholderAcrossLanguagesAndVariants() {
+        assertTrue(isDeletedPlaceholder("Se eliminó este mensaje."))
+        assertTrue(isDeletedPlaceholder("\u200E🚫 இந்த மெசேஜ் நீக்கப்பட்டது"))
+        assertTrue(isDeletedPlaceholder("此消息已删除"))
+        assertTrue(isDeletedPlaceholder("This message was deleted by admin Sam"))
+        assertFalse(isDeletedPlaceholder("Mensagem apagada? Não entendi"))
+    }
+
+    @Test fun learnedPlaceholderMatches() {
+        val learned = setOf(normalizePlaceholder("Mesej ini telah dipadam."))
+        assertTrue(isDeletedPlaceholder("Mesej ini telah dipadam", learned))
+        assertFalse(isDeletedPlaceholder("Mesej ini telah dipadam", emptySet()))
+    }
+
+    @Test fun collisionAcrossPeopleMeansPlaceholder() {
+        assertTrue(isPlaceholderCollision("Family", "Sam", listOf("Work" to "Priya")))
+        assertTrue(isPlaceholderCollision("Family", "Sam", listOf("Family" to "Priya")))
+        assertFalse(isPlaceholderCollision("Family", "Sam", listOf("Family" to "Sam")))
+        assertFalse(isPlaceholderCollision("Family", "Sam", emptyList()))
+    }
+
     @Test fun deletedFromMiddleIsDetected() {
         val prev = listOf(k(1), k(2), k(3))
         val cur = listOf(k(1), k(3))

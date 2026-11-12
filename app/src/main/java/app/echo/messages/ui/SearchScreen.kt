@@ -1,5 +1,7 @@
 package app.echo.messages.ui
 
+import app.echo.messages.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,11 +55,11 @@ fun SearchScreen(vm: EchoViewModel, onOpenChat: (String, String) -> Unit, onBack
         TextField(
             value = query,
             onValueChange = { vm.query.value = it },
-            placeholder = { Text("Search names, chats and words") },
+            placeholder = { Text(stringResource(R.string.search_hint)) },
             singleLine = true,
-            leadingIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back") } },
+            leadingIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back)) } },
             trailingIcon = {
-                if (query.isNotEmpty()) IconButton(onClick = { vm.query.value = "" }) { Icon(Icons.Rounded.Close, contentDescription = "Clear search") }
+                if (query.isNotEmpty()) IconButton(onClick = { vm.query.value = "" }) { Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.clear_search)) }
             },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -73,8 +75,8 @@ fun SearchScreen(vm: EchoViewModel, onOpenChat: (String, String) -> Unit, onBack
         )
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         when {
-            query.isBlank() -> EmptyState(Icons.Outlined.TravelExplore, "Find anything you were sent", "Search across every saved chat, including messages that were deleted.")
-            results.isEmpty() -> EmptyState(Icons.Outlined.SearchOff, "No matches", "Nothing saved matches “${query.trim()}”.")
+            query.isBlank() -> EmptyState(Icons.Outlined.TravelExplore, stringResource(R.string.search_empty_title), stringResource(R.string.search_empty_body))
+            results.isEmpty() -> EmptyState(Icons.Outlined.SearchOff, stringResource(R.string.search_none_title), stringResource(R.string.search_none_body, query.trim()))
             else -> LazyColumn(Modifier.fillMaxSize()) {
                 items(results, key = { it.id }) { m -> ResultRow(m, query.trim()) { onOpenChat(m.pkg, m.conversation) } }
             }
@@ -115,9 +117,10 @@ private fun ResultRow(m: Message, q: String, onClick: () -> Unit) {
                 Text(m.conversation, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                 Text(shortTime(context, m.timestamp), style = MaterialTheme.typography.labelMedium, color = c.onSurfaceVariant)
             }
+            // Prefix templates end with the message; an empty message leaves just the prefix.
             val who = when {
-                m.isMine -> "You: "
-                m.isGroup -> "${m.sender}: "
+                m.isMine -> stringResource(R.string.you_prefix, "")
+                m.isGroup -> stringResource(R.string.sender_prefix, m.sender, "")
                 else -> ""
             }
             Text(
@@ -127,7 +130,7 @@ private fun ResultRow(m: Message, q: String, onClick: () -> Unit) {
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (m.isDeleted) Text("Deleted", style = MaterialTheme.typography.labelSmall, color = c.tertiary)
+            if (m.isDeleted) Text(stringResource(R.string.label_deleted), style = MaterialTheme.typography.labelSmall, color = c.tertiary)
         }
     }
 }

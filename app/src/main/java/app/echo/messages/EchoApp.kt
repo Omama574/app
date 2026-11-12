@@ -17,8 +17,8 @@ class EchoApp : Application() {
     override fun onCreate() {
         super.onCreate()
         getSystemService(NotificationManager::class.java).createNotificationChannel(
-            NotificationChannel(CHANNEL_DELETED, "Deleted messages", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "Tells you the moment someone deletes a message, with what it said."
+            NotificationChannel(CHANNEL_DELETED, getString(R.string.channel_deleted), NotificationManager.IMPORTANCE_HIGH).apply {
+                description = getString(R.string.channel_deleted_desc)
             }
         )
     }

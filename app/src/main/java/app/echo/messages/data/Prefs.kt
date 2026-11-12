@@ -23,6 +23,16 @@ class Prefs(context: Context) {
     val keepDays: StateFlow<Int> = _keepDays
     fun setKeepDays(v: Int) { sp.edit().putInt("keep_days", v).apply(); _keepDays.value = v }
 
+    /** "Deleted" placeholder texts discovered on this device (normalised), for languages the built-in list misses. */
+    private val _learned = MutableStateFlow(sp.getStringSet("learned_placeholders", emptySet()).orEmpty().toSet())
+    val learnedPlaceholders: StateFlow<Set<String>> = _learned
+    fun learnPlaceholder(normalized: String) {
+        if (normalized in _learned.value) return
+        val next = _learned.value + normalized
+        sp.edit().putStringSet("learned_placeholders", next).apply()
+        _learned.value = next
+    }
+
     /** Messaging apps the user switched off. Everything supported is on by default. */
     private val _mutedApps = MutableStateFlow(sp.getStringSet("muted_apps", emptySet()).orEmpty().toSet())
     val mutedApps: StateFlow<Set<String>> = _mutedApps

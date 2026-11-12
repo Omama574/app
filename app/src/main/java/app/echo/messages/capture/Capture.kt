@@ -38,28 +38,63 @@ val MESSENGERS: Map<String, String> = mapOf(
     "com.google.android.apps.dynamite" to "Google Chat",
 )
 
-// shortcut: placeholder texts for the most common app languages only; add more as users report them.
+/**
+ * "This message was deleted" as WhatsApp shows it, per language. Verified: English, Tamil (WhatsApp FAQ),
+ * Spanish, Portuguese, Russian, Indonesian (press quoting the app). The rest are best-known wording;
+ * if one is off, [isPlaceholderCollision] learns the real text on the device after two deletions.
+ */
 private val DELETED_PLACEHOLDERS = listOf(
-    "this message was deleted",
-    "you deleted this message",
-    "se eliminó este mensaje",
-    "este mensaje fue eliminado",
-    "esta mensagem foi apagada",
-    "mensagem apagada",
-    "ce message a été supprimé",
-    "diese nachricht wurde gelöscht",
-    "pesan ini telah dihapus",
-    "questo messaggio è stato eliminato",
-    "bu mesaj silindi",
-    "это сообщение удалено",
-    "यह मैसेज डिलीट किया गया",
-)
+    "this message was deleted", "you deleted this message",
+    "se eliminó este mensaje", "este mensaje fue eliminado", "eliminaste este mensaje",
+    "esta mensagem foi apagada", "essa mensagem foi apagada", "mensagem apagada", "você apagou esta mensagem",
+    "это сообщение было удалено", "это сообщение удалено", "данное сообщение удалено", "вы удалили это сообщение",
+    "pesan ini telah dihapus", "anda menghapus pesan ini",
+    "இந்த மெசேஜ் நீக்கப்பட்டது",
+    "ce message a été supprimé", "vous avez supprimé ce message",
+    "diese nachricht wurde gelöscht", "du hast diese nachricht gelöscht",
+    "questo messaggio è stato eliminato", "hai eliminato questo messaggio",
+    "bu mesaj silindi", "bu mesajı sildiniz",
+    "تم حذف هذه الرسالة", "لقد حذفت هذه الرسالة",
+    "यह मैसेज डिलीट कर दिया गया था", "यह मैसेज डिलीट किया गया", "यह संदेश हटा दिया गया",
+    "یہ پیغام حذف کر دیا گیا", "یہ پیغام حذف کر دیا گیا تھا",
+    "এই মেসেজটি মুছে ফেলা হয়েছে", "এই বার্তাটি মুছে ফেলা হয়েছে",
+    "हा मेसेज हटवला गेला", "हा संदेश हटवला गेला",
+    "આ મેસેજ ડિલીટ કરવામાં આવ્યો હતો", "આ સંદેશ કાઢી નાખવામાં આવ્યો હતો",
+    "ఈ మెసేజ్ తొలగించబడింది", "ఈ సందేశం తొలగించబడింది",
+    "このメッセージは削除されました",
+    "삭제된 메시지입니다", "이 메시지는 삭제되었습니다",
+    "此消息已删除", "此消息已被删除", "此訊息已刪除", "此訊息已被刪除",
+    "ข้อความนี้ถูกลบแล้ว",
+    "tin nhắn này đã bị xóa", "tin nhắn này đã bị xoá",
+    "ta wiadomość została usunięta",
+    "це повідомлення видалено", "це повідомлення було видалено",
+).map(::normalizePlaceholder)
 
-/** True when an app replaced a message with its "deleted" placeholder (WhatsApp keeps the original timestamp). */
-fun isDeletedPlaceholder(text: String): Boolean {
-    val t = text.trim().removePrefix("‎").removePrefix("🚫").trim().lowercase()
-    return DELETED_PLACEHOLDERS.any { t == it || t.startsWith("$it.") }
+/** Lowercase, no 🚫 icon, direction marks or end punctuation, single spaces: so small app differences still match. */
+fun normalizePlaceholder(text: String): String =
+    text.replace(Regex("[\\u200E\\u200F\\u202A-\\u202E\\u2066-\\u2069]|🚫"), "")
+        .lowercase()
+        .replace(Regex("\\s+"), " ")
+        .trim()
+        .trimEnd('.', '。', '।', '!', ' ')
+
+/**
+ * True when an app replaced a message with its "deleted" placeholder (WhatsApp keeps the original timestamp).
+ * `learned` holds placeholders discovered on this device. A prefix match also covers "…deleted by admin Sam".
+ */
+fun isDeletedPlaceholder(text: String, learned: Set<String> = emptySet(), exact: Boolean = false): Boolean {
+    val t = normalizePlaceholder(text)
+    if (t in learned) return true
+    return DELETED_PLACEHOLDERS.any { t == it || (!exact && t.startsWith("$it ")) }
 }
+
+/**
+ * A message's text changed in place. If other people's messages already changed to the exact same text,
+ * it isn't an edit: it's this phone's "deleted" placeholder, in whatever language the phone uses.
+ * shortcut: two people editing to the identical text would be misread as deletions; rare enough for now.
+ */
+fun isPlaceholderCollision(conversation: String, sender: String, alreadyChangedTo: List<Pair<String, String>>): Boolean =
+    alreadyChangedTo.any { (c, s) -> c != conversation || s != sender }
 
 /**
  * Messages that vanished from a conversation's notification between two updates.

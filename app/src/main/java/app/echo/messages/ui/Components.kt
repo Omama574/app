@@ -1,5 +1,6 @@
 package app.echo.messages.ui
 
+import app.echo.messages.R
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -93,27 +94,27 @@ fun rememberAppIcon(pkg: String): ImageBitmap? {
 /** "now", "12m", "14:32", "Yesterday", "Mon", "12 Mar". */
 fun shortTime(context: Context, ts: Long, now: Long = System.currentTimeMillis()): String {
     val diff = now - ts
-    if (diff < 60_000) return "now"
-    if (diff < 60 * 60_000) return "${diff / 60_000}m"
+    if (diff < 60_000) return context.getString(R.string.time_now)
+    if (diff < 60 * 60_000) return context.getString(R.string.time_minutes, (diff / 60_000).toInt())
     val then = Calendar.getInstance().apply { timeInMillis = ts }
     val today = Calendar.getInstance().apply { timeInMillis = now }
     val sameDay = then.get(Calendar.YEAR) == today.get(Calendar.YEAR) && then.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
     if (sameDay) return clock(context, ts)
     today.add(Calendar.DAY_OF_YEAR, -1)
-    if (then.get(Calendar.YEAR) == today.get(Calendar.YEAR) && then.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) return "Yesterday"
+    if (then.get(Calendar.YEAR) == today.get(Calendar.YEAR) && then.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) return context.getString(R.string.time_yesterday)
     if (diff < 6 * 24 * 60 * 60_000L) return DateFormat.format("EEE", ts).toString()
     return DateFormat.format("d MMM", ts).toString()
 }
 
 fun clock(context: Context, ts: Long): String = DateFormat.getTimeFormat(context).format(ts)
 
-fun dayLabel(ts: Long, now: Long = System.currentTimeMillis()): String {
+fun dayLabel(context: Context, ts: Long, now: Long = System.currentTimeMillis()): String {
     val then = Calendar.getInstance().apply { timeInMillis = ts }
     val day = Calendar.getInstance().apply { timeInMillis = now }
     fun same() = then.get(Calendar.YEAR) == day.get(Calendar.YEAR) && then.get(Calendar.DAY_OF_YEAR) == day.get(Calendar.DAY_OF_YEAR)
-    if (same()) return "Today"
+    if (same()) return context.getString(R.string.time_today)
     day.add(Calendar.DAY_OF_YEAR, -1)
-    if (same()) return "Yesterday"
+    if (same()) return context.getString(R.string.time_yesterday)
     return DateFormat.format("EEEE, d MMMM", ts).toString()
 }
 
